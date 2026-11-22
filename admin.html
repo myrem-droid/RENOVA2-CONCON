@@ -19,8 +19,7 @@
 
   <main class="admin-main">
     <section id="setupNotice" class="notice" hidden>
-      Antes de usar el panel, configura las credenciales de Supabase en
-      <code>supabase-config.js</code> y ejecuta <code>schema.sql</code>.
+      Configura las credenciales de Supabase en <code>supabase-config.js</code> antes de usar el panel.
     </section>
 
     <section id="loginPanel" class="login-card">
@@ -41,63 +40,36 @@
 
     <section id="dashboard" hidden>
       <div class="dashboard-title">
-        <div>
-          <p class="eyebrow">TU TIENDA, A TU MANERA</p>
-          <h1>Inventario</h1>
-        </div>
+        <div><p class="eyebrow">TU TIENDA, A TU MANERA</p><h1>Inventario</h1></div>
         <button id="logoutBtn" class="outline-button" type="button">Cerrar sesión</button>
       </div>
 
       <div class="stats-grid" aria-label="Resumen del inventario">
-        <article class="stat-card">
-          <span class="stat-label">Total de prendas</span>
-          <strong id="statTotal">0</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Disponibles</span>
-          <strong id="statAvailable">0</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Vendidas</span>
-          <strong id="statSold">0</strong>
-        </article>
+        <article class="stat-card"><span class="stat-label">Total de prendas</span><strong id="statTotal">0</strong></article>
+        <article class="stat-card"><span class="stat-label">Disponibles</span><strong id="statAvailable">0</strong></article>
+        <article class="stat-card"><span class="stat-label">Vendidas</span><strong id="statSold">0</strong></article>
       </div>
 
       <div class="admin-layout">
         <form id="productForm" class="editor-card">
           <h2 id="formTitle">Agregar prenda</h2>
           <input type="hidden" id="productId">
-
-          <label>Nombre de la prenda
-            <input id="pName" required maxlength="90" placeholder="Ej. Chaqueta denim vintage">
-          </label>
-
+          <label>Nombre de la prenda<input id="pName" required maxlength="90" placeholder="Ej. Chaqueta denim vintage"></label>
           <div class="two-cols">
-            <label>Precio (CLP)
-              <input id="pPrice" type="number" min="0" step="1" required placeholder="8000">
-            </label>
-            <label>Talla
-              <input id="pSize" maxlength="20" placeholder="M / 38 / Única">
-            </label>
+            <label>Precio (CLP)<input id="pPrice" type="number" min="0" step="1" required placeholder="8000"></label>
+            <label>Talla<input id="pSize" maxlength="20" placeholder="M / 38 / Única"></label>
           </div>
-
           <div class="two-cols">
-            <label>Categoría
-              <input id="pCategory" maxlength="40" placeholder="Chaquetas">
-            </label>
-            <label>Estado
-              <input id="pCondition" maxlength="40" placeholder="Muy buen estado">
-            </label>
+            <label>Categoría<input id="pCategory" maxlength="40" placeholder="Chaquetas"></label>
+            <label>Estado<input id="pCondition" maxlength="40" placeholder="Muy buen estado"></label>
           </div>
+          <label>Descripción<textarea id="pDescription" rows="3" maxlength="500" placeholder="Detalles de la prenda..."></textarea></label>
 
-          <label>Descripción
-            <textarea id="pDescription" rows="3" maxlength="500" placeholder="Detalles de la prenda..."></textarea>
+          <label>Fotografías de la prenda
+            <input id="pImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
           </label>
-
-          <label>Fotografía
-            <input id="pImage" type="file" accept="image/jpeg,image/png,image/webp">
-          </label>
-          <p class="hint">Usa fotos claras y propias. JPG, PNG o WEBP; máximo 5 MB.</p>
+          <p class="hint">Puedes subir hasta 8 fotos por prenda. JPG, PNG o WEBP; máximo 5 MB por foto. En edición, las fotos actuales se conservan salvo que las quites aquí.</p>
+          <div id="imagePreview" class="admin-image-preview" aria-live="polite"></div>
 
           <div class="form-actions">
             <button class="button button-dark" type="submit" id="saveBtn">Publicar prenda</button>
@@ -108,40 +80,18 @@
 
         <section class="inventory-card">
           <div class="inventory-heading">
-            <div>
-              <h2>Inventario de prendas</h2>
-              <p class="hint">Busca, filtra y administra las prendas publicadas y vendidas.</p>
-            </div>
+            <div><h2>Inventario de prendas</h2><p class="hint">Busca, filtra y administra las prendas publicadas y vendidas.</p></div>
             <span id="productCount">0</span>
           </div>
-
           <div class="inventory-tools">
-            <label class="search-label">Buscar prenda
-              <input id="inventorySearch" type="search" placeholder="Nombre, talla o descripción…">
-            </label>
+            <label class="search-label">Buscar prenda<input id="inventorySearch" type="search" placeholder="Nombre, talla o descripción…"></label>
             <div class="filter-row">
-              <label>Categoría
-                <select id="categoryFilter">
-                  <option value="">Todas las categorías</option>
-                </select>
-              </label>
-              <label>Estado
-                <select id="statusFilter">
-                  <option value="all">Todas</option>
-                  <option value="available">Disponibles</option>
-                  <option value="sold">Vendidas</option>
-                </select>
-              </label>
+              <label>Categoría<select id="categoryFilter"><option value="">Todas las categorías</option></select></label>
+              <label>Estado<select id="statusFilter"><option value="all">Todas</option><option value="available">Disponibles</option><option value="sold">Vendidas</option></select></label>
             </div>
           </div>
-
-          <div class="inventory-subheading">
-            <h3 id="inventoryTitle">Todas las prendas</h3>
-            <button id="clearFilters" class="text-button" type="button">Limpiar filtros</button>
-          </div>
-          <div id="inventoryList" class="inventory-list" aria-live="polite">
-            <p class="hint">Cargando inventario…</p>
-          </div>
+          <div class="inventory-subheading"><h3 id="inventoryTitle">Todas las prendas</h3><button id="clearFilters" class="text-button" type="button">Limpiar filtros</button></div>
+          <div id="inventoryList" class="inventory-list" aria-live="polite"><p class="hint">Cargando inventario…</p></div>
         </section>
       </div>
     </section>

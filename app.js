@@ -1,250 +1,170 @@
-
 (() => {
-  const $ = s => document.querySelector(s);
-
+  const $ = (selector) => document.querySelector(selector);
   const grid = $("#productGrid");
   const search = $("#searchInput");
   const category = $("#categoryFilter");
   const size = $("#sizeFilter");
   const sort = $("#sortFilter");
-
+  const modal = $("#productModal");
   let products = [];
-  let db = null;
+  let activeProduct = null;
+  let activeImageIndex = 0;
+  let lastFocusedElement = null;
 
-  const money = n =>
-    "$" + Number(n || 0).toLocaleString("es-CL");
+  const money = (value) => "$" + Number(value || 0).toLocaleString("es-CL");
+  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
 
   const config = window.RENOVA2_CONFIG || {};
-  const supabaseUrl = config.SUPABASE_URL || "";
-  const supabaseKey = config.SUPABASE_ANON_KEY || "";
+  const key = config.SUPABASE_ANON_KEY || "";
+  const configured = typeof config.SUPABASE_URL === "string" && config.SUPABASE_URL.startsWith("https://") &&
+    (key.startsWith("ey") || key.startsWith("sb_publishable_"));
+  const db = configured && window.supabase ? window.supabase.createClient(config.SUPABASE_URL, key) : null;
 
-  const validKey =
-    supabaseKey.startsWith("ey") ||
-    supabaseKey.startsWith("sb_publishable_");
-
-  const configured =
-    supabaseUrl.startsWith("https://") &&
-    validKey &&
-    window.supabase &&
-    typeof window.supabase.createClient === "function";
-
-  if (configured) {
-    try {
-      db = window.supabase.createClient(
-        supabaseUrl,
-        supabaseKey
-      );
-    } catch (error) {
-      console.error("Error inicializando Supabase:", error);
-    }
+  function imagesFor(product) {
+    const images = Array.isArray(product.image_urls) ? product.image_urls.filter(Boolean) : [];
+    if (images.length) return images;
+    return product.image_url ? [product.image_url] : [];
   }
 
-  function escapeHtml(s = "") {
-    return String(s).replace(/[&<>"']/g, c => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[c]));
-  }
-
-  function whatsappLink(p) {
+  function whatsappLink(product) {
     const page = location.href.split("#")[0];
-
-    const message = `¡Hola! Me interesa esta prenda de RENOVA2 CONCÓN:
-${p.name}
-Precio: ${money(p.price)}
-Talla: ${p.size || "Consultar"}
-Foto: ${p.image_url || "Ver en el catálogo"}
-${page}#producto-${p.id}
-¿Sigue disponible?`;
-
+    const images = imagesFor(product);
+    const message = `¡Hola! Me interesa esta prenda de RENOVA2 CONCÓN:\n${product.name}\nPrecio: ${money(product.price)}\nTalla: ${product.size || "Consultar"}\nFoto: ${images[0] || "Ver en el catálogo"}\n${page}#producto-${product.id}\n¿Sigue disponible?`;
     return `https://wa.me/56933175639?text=${encodeURIComponent(message)}`;
   }
 
   function fillFilters() {
-    const cats = [
-      ...new Set(products.map(p => p.category).filter(Boolean))
-    ].sort();
-
-    const sizes = [
-      ...new Set(products.map(p => p.size).filter(Boolean))
-    ].sort();
-
-    if (category) {
-      category.innerHTML =
-        '<option value="">Todas las categorías</option>' +
-        cats.map(x =>
-          `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`
-        ).join("");
-    }
-
-    if (size) {
-      size.innerHTML =
-        '<option value="">Todas las tallas</option>' +
-        sizes.map(x =>
-          `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`
-        ).join("");
-    }
+    const categories = [...new Set(products.map((p) => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    const sizes = [...new Set(products.map((p) => p.size).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    const oldCategory = category.value;
+    const oldSize = size.value;
+    category.innerHTML = '<option value="">Todas las categorías</option>' + categories.map((x) => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
+    size.innerHTML = '<option value="">Todas las tallas</option>' + sizes.map((x) => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
+    if (categories.includes(oldCategory)) category.value = oldCategory;
+    if (sizes.includes(oldSize)) size.value = oldSize;
   }
 
   function render() {
-    if (!grid) return;
-
-    let list = products.filter(p => p.available !== false);
-
-    const q = search ? search.value.trim().toLowerCase() : "";
-    const selectedCategory = category ? category.value : "";
-    const selectedSize = size ? size.value : "";
-    const selectedSort = sort ? sort.value : "";
-
-    list = list.filter(p =>
-      (!q || [
-        p.name,
-        p.description,
-        p.category,
-        p.size
-      ].join(" ").toLowerCase().includes(q)) &&
-      (!selectedCategory || p.category === selectedCategory) &&
-      (!selectedSize || p.size === selectedSize)
-    );
-
-    if (selectedSort === "price-asc") {
-      list.sort((a, b) => a.price - b.price);
-    }
-
-    if (selectedSort === "price-desc") {
-      list.sort((a, b) => b.price - a.price);
-    }
-
-    if (selectedSort === "newest") {
-      list.sort((a, b) =>
-        new Date(b.created_at || 0) -
-        new Date(a.created_at || 0)
-      );
-    }
+    let list = products.filter((p) => p.available !== false);
+    const query = search.value.trim().toLocaleLowerCase("es");
+    list = list.filter((p) => {
+      const searchable = [p.name, p.description, p.category, p.size, p.condition].join(" ").toLocaleLowerCase("es");
+      return (!query || searchable.includes(query)) && (!category.value || p.category === category.value) && (!size.value || p.size === size.value);
+    });
+    if (sort.value === "price-asc") list.sort((a, b) => Number(a.price) - Number(b.price));
+    if (sort.value === "price-desc") list.sort((a, b) => Number(b.price) - Number(a.price));
+    if (sort.value === "newest") list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
     if (!list.length) {
-      grid.innerHTML = `
-        <div class="empty-state">
-          Todavía no hay prendas en esta selección.<br>
-          Vuelve pronto: siempre estamos renovando el catálogo. 🌿
-        </div>
-      `;
+      grid.innerHTML = '<div class="empty-state">Todavía no hay prendas en esta selección.<br>Vuelve pronto: siempre estamos renovando el catálogo. 🌿</div>';
       return;
     }
 
-    grid.innerHTML = list.map(p => `
-      <article class="product-card" id="producto-${escapeHtml(p.id)}">
-        <div class="product-image">
-          ${
-            p.image_url
-              ? `<img loading="lazy" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}">`
-              : '<div class="empty-state">RENOVA2</div>'
-          }
-          <span class="product-tag">PIEZA ÚNICA</span>
-        </div>
-
-        <div class="product-info">
-          <span class="product-category">
-            ${escapeHtml(p.category || "Prenda")}
-          </span>
-
-          <h3>${escapeHtml(p.name)}</h3>
-
-          <div class="product-meta">
-            <span>Talla: ${escapeHtml(p.size || "Consultar")}</span>
-            <span>${escapeHtml(p.condition || "Buen estado")}</span>
+    grid.innerHTML = list.map((product) => {
+      const images = imagesFor(product);
+      const cover = images[0];
+      return `<article class="product-card" id="producto-${esc(product.id)}">
+        <button class="product-open" type="button" data-open-product="${esc(product.id)}" aria-label="Ver detalles de ${esc(product.name)}">
+          <div class="product-image">${cover ? `<img loading="lazy" src="${esc(cover)}" alt="${esc(product.name)}">` : '<div class="empty-state">RENOVA2</div>'}
+            <span class="product-tag">PIEZA ÚNICA</span>${images.length > 1 ? `<span class="photo-count">${images.length} fotos</span>` : ""}</div>
+          <div class="product-info"><span class="product-category">${esc(product.category || "Prenda")}</span><h3>${esc(product.name)}</h3>
+            <div class="product-meta"><span>Talla: ${esc(product.size || "Consultar")}</span><span>${esc(product.condition || "Buen estado")}</span></div>
+            <div class="product-price">${money(product.price)}</div><span class="details-link">Ver detalles de la prenda ↗</span>
           </div>
-
-          <div class="product-price">
-            ${money(p.price)}
-          </div>
-
-          <a
-            class="whatsapp-button"
-            href="${whatsappLink(p)}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Consultar por WhatsApp ↗
-          </a>
-        </div>
-      </article>
-    `).join("");
+        </button>
+        <a class="whatsapp-button" href="${whatsappLink(product)}" target="_blank" rel="noopener">Consultar por WhatsApp ↗</a>
+      </article>`;
+    }).join("");
   }
+
+  function renderModalImage() {
+    if (!activeProduct) return;
+    const images = imagesFor(activeProduct);
+    const current = images[activeImageIndex];
+    const main = $("#modalMainImage");
+    main.src = current || "";
+    main.alt = `${activeProduct.name} · fotografía ${activeImageIndex + 1}`;
+    $("#modalImageCount").textContent = images.length > 1 ? `${activeImageIndex + 1} / ${images.length}` : "";
+    $(".gallery-prev").hidden = images.length < 2;
+    $(".gallery-next").hidden = images.length < 2;
+    $("#modalThumbnails").innerHTML = images.length > 1 ? images.map((url, index) =>
+      `<button type="button" class="modal-thumb ${index === activeImageIndex ? "active" : ""}" data-image-index="${index}" aria-label="Ver fotografía ${index + 1}" aria-pressed="${index === activeImageIndex}"><img src="${esc(url)}" alt=""></button>`
+    ).join("") : "";
+  }
+
+  function openProduct(id) {
+    const product = products.find((item) => item.id === id);
+    if (!product) return;
+    activeProduct = product;
+    activeImageIndex = 0;
+    lastFocusedElement = document.activeElement;
+    $("#modalCategory").textContent = product.category || "Prenda";
+    $("#modalProductName").textContent = product.name || "Prenda RENOVA2";
+    $("#modalPrice").textContent = money(product.price);
+    $("#modalSize").textContent = `Talla: ${product.size || "Consultar"}`;
+    $("#modalCondition").textContent = product.condition || "Buen estado";
+    $("#modalDescription").textContent = product.description || "Una pieza única seleccionada para tener una segunda historia.";
+    $("#modalWhatsapp").href = whatsappLink(product);
+    renderModalImage();
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    $(".modal-close").focus();
+  }
+
+  function closeModal() {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+    activeProduct = null;
+    if (lastFocusedElement && typeof lastFocusedElement.focus === "function") lastFocusedElement.focus();
+  }
+
+  function moveImage(direction) {
+    if (!activeProduct) return;
+    const images = imagesFor(activeProduct);
+    if (images.length < 2) return;
+    activeImageIndex = (activeImageIndex + direction + images.length) % images.length;
+    renderModalImage();
+  }
+
+  grid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-open-product]");
+    if (button) openProduct(button.dataset.openProduct);
+  });
+  modal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close-modal]")) closeModal();
+    if (event.target.closest(".gallery-prev")) moveImage(-1);
+    if (event.target.closest(".gallery-next")) moveImage(1);
+    const thumb = event.target.closest("[data-image-index]");
+    if (thumb) { activeImageIndex = Number(thumb.dataset.imageIndex); renderModalImage(); }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (modal.hidden) return;
+    if (event.key === "Escape") closeModal();
+    if (event.key === "ArrowLeft") moveImage(-1);
+    if (event.key === "ArrowRight") moveImage(1);
+  });
 
   async function load() {
-    if (!grid) {
-      console.error("No se encontró #productGrid en index.html");
-      return;
-    }
-
     if (!db) {
-      grid.innerHTML = `
-        <div class="empty-state">
-          El catálogo estará disponible cuando se conecte la base de datos.<br>
-          Estamos preparando RENOVA2 para su lanzamiento. 🌿
-        </div>
-      `;
-
-      console.error(
-        "Supabase no está configurado. Revisa RENOVA2_CONFIG, la URL y la clave."
-      );
-
+      grid.innerHTML = '<div class="empty-state">El catálogo estará disponible cuando se conecte la base de datos.<br>Estamos preparando RENOVA2 para su lanzamiento. 🌿</div>';
       return;
     }
-
-    grid.innerHTML = `
-      <div class="empty-state">
-        Cargando catálogo... 🌿
-      </div>
-    `;
-
-    try {
-      const { data, error } = await db
-        .from("products")
-        .select("*")
-        .eq("available", true)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error de Supabase:", error);
-
-        grid.innerHTML = `
-          <div class="empty-state">
-            No pudimos cargar el catálogo.<br>
-            Inténtalo nuevamente más tarde.
-          </div>
-        `;
-
-        return;
-      }
-
-      products = data || [];
-
-      fillFilters();
-      render();
-
-    } catch (error) {
-      console.error("Error inesperado cargando el catálogo:", error);
-
-      grid.innerHTML = `
-        <div class="empty-state">
-          Ocurrió un problema al cargar las prendas.<br>
-          Inténtalo nuevamente más tarde.
-        </div>
-      `;
+    const { data, error } = await db.from("products").select("*").eq("available", true).order("created_at", { ascending: false });
+    if (error) {
+      grid.innerHTML = '<div class="empty-state">No pudimos cargar el catálogo. Inténtalo nuevamente más tarde.</div>';
+      console.error(error);
+      return;
     }
+    products = data || [];
+    fillFilters();
+    render();
   }
 
-  [search, category, size, sort]
-    .filter(Boolean)
-    .forEach(el => {
-      el.addEventListener("input", render);
-      el.addEventListener("change", render);
-    });
-
+  [search, category, size, sort].forEach((element) => element.addEventListener("input", render));
   load();
 })();

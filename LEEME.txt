@@ -1,0 +1,29 @@
+RENOVA2 CONCON — ACTUALIZACION DE GALERIA MULTIFOTO
+
+ARCHIVOS INCLUIDOS:
+- index.html
+- app.js
+- styles.css
+- admin.html
+- admin.js
+- admin.css
+
+INSTALACION:
+1. Descomprime este ZIP.
+2. Copia y reemplaza esos seis archivos en la carpeta principal de tu repositorio de GitHub Pages.
+3. NO reemplaces ni borres tu archivo supabase-config.js: conserva las credenciales que ya tienes configuradas.
+4. Tampoco necesitas reemplazar logo-renova2.jpg si ya está en tu proyecto.
+5. Sube los cambios a GitHub y espera a que Pages actualice la web.
+
+BASE DE DATOS:
+La columna public.products.image_urls (text[]) debe estar creada. La consulta de migración ya se ejecutó antes de instalar estos archivos.
+
+FUNCIONAMIENTO:
+- El panel permite subir hasta 8 fotos por prenda, máximo 5 MB por foto.
+- Al editar, las fotos anteriores se conservan. Puedes quitar las que ya no quieras y añadir nuevas.
+- La tienda usa la primera foto como portada y permite abrir una ficha con galería, detalles y botón de WhatsApp.
+- Los productos antiguos siguen funcionando mediante image_url; no es necesario volver a subir sus fotos.
+- Las fotos subidas se guardan en el bucket product-images.
+
+IMPORTANTE:
+Mantén supabase-config.js con la clave pública (sb_publishable_... o anon heredada). Nunca publiques una service_role ni una sb_secret en el navegador.

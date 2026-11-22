@@ -70,6 +70,31 @@
     </section>
   </main>
 
+  <div id="productModal" class="product-modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalProductName">
+      <button class="modal-close" type="button" aria-label="Cerrar detalles" data-close-modal>×</button>
+      <div class="modal-gallery">
+        <div class="modal-main-image-wrap">
+          <button class="gallery-arrow gallery-prev" type="button" aria-label="Fotografía anterior">‹</button>
+          <img id="modalMainImage" src="" alt="">
+          <button class="gallery-arrow gallery-next" type="button" aria-label="Fotografía siguiente">›</button>
+          <span id="modalImageCount" class="modal-image-count"></span>
+        </div>
+        <div id="modalThumbnails" class="modal-thumbnails"></div>
+      </div>
+      <div class="modal-details">
+        <p id="modalCategory" class="product-category"></p>
+        <h2 id="modalProductName"></h2>
+        <p id="modalPrice" class="modal-price"></p>
+        <div class="modal-facts"><span id="modalSize"></span><span id="modalCondition"></span></div>
+        <p id="modalDescription" class="modal-description"></p>
+        <a id="modalWhatsapp" class="whatsapp-button modal-whatsapp" href="#" target="_blank" rel="noopener">Consultar por WhatsApp ↗</a>
+        <p class="modal-footnote">Pieza única · RENOVA2 CONCÓN</p>
+      </div>
+    </section>
+  </div>
+
   <footer><a class="footer-brand" href="./">RENOVA2 <span>CONCÓN</span></a><p>Ropa con otra historia. · Concón, Chile</p><div><a href="https://www.facebook.com/share/1DzpCW2sTF/" target="_blank" rel="noopener">Facebook</a><a href="https://wa.me/56933175639" target="_blank" rel="noopener">WhatsApp</a><a href="admin.html">Administración</a></div></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
