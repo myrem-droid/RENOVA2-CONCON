@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f1e8">
+  <meta name="description" content="RENOVA2 CONCÓN — ropa reciclada, prendas únicas y nuevos hallazgos.">
+  <title>RENOVA2 CONCÓN | Ropa con otra historia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="announcement">PRENDAS ÚNICAS · SEGUNDA VIDA · CONCÓN</div>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="RENOVA2 inicio">
+      <img src="logo-renova2.jpg" alt="Logo RENOVA2 CONCÓN">
+      <span><b>RENOVA2</b><small>CONCÓN · ROPA CON OTRA HISTORIA</small></span>
+    </a>
+    <nav>
+      <a href="#catalogo">Catálogo</a>
+      <a href="#nosotros">Nuestra idea</a>
+      <a href="https://www.facebook.com/share/1DzpCW2sTF/" target="_blank" rel="noopener">Facebook ↗</a>
+    </nav>
+    <a class="header-cta" href="https://wa.me/56933175639" target="_blank" rel="noopener">Hablemos por WhatsApp</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">MODA CIRCULAR · CONCÓN, CHILE</p>
+        <h1>Encuentra algo<br><em>único.</em> Dale otra historia.</h1>
+        <p class="hero-text">Ropa seleccionada para seguir acompañando nuevas historias. Cada prenda es especial y puede que no haya otra igual.</p>
+        <div class="hero-actions">
+          <a class="button button-dark" href="#catalogo">Explorar prendas <span>↓</span></a>
+          <a class="text-link" href="https://www.facebook.com/share/1DzpCW2sTF/" target="_blank" rel="noopener">Visítanos en Facebook ↗</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <div class="hero-orbit"></div>
+        <img src="logo-renova2.jpg" alt="Identidad visual de RENOVA2">
+        <span class="stamp">RE-USE<br>RE-LOVE</span>
+        <span class="hero-note">Una segunda oportunidad<br>para prendas especiales.</span>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="catalogo">
+      <div class="section-heading">
+        <div><p class="eyebrow">EL CATÁLOGO</p><h2>Hallazgos para ti<span>.</span></h2></div>
+        <p class="section-note">Cada pieza es única. Si te gusta, consulta su disponibilidad.</p>
+      </div>
+      <div class="catalog-tools">
+        <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Buscar una prenda..." aria-label="Buscar prendas"></label>
+        <select id="categoryFilter" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select>
+        <select id="sizeFilter" aria-label="Filtrar por talla"><option value="">Todas las tallas</option></select>
+        <select id="sortFilter" aria-label="Ordenar productos"><option value="newest">Más recientes</option><option value="price-asc">Precio: menor a mayor</option><option value="price-desc">Precio: mayor a menor</option></select>
+      </div>
+      <div id="productGrid" class="product-grid">
+        <div class="empty-state">Preparando el catálogo…</div>
+      </div>
+      <p class="catalog-footnote">¿No encuentras lo que buscas? <a href="https://wa.me/56933175639" target="_blank" rel="noopener">Escríbenos por WhatsApp.</a></p>
+    </section>
+
+    <section class="about-section" id="nosotros">
+      <div class="about-mark">R<span>2</span></div>
+      <div><p class="eyebrow">MÁS QUE ROPA</p><h2>Las buenas prendas<br>merecen <em>otra historia.</em></h2>
+      <p>En RENOVA2 creemos en dar nuevas oportunidades a la ropa. Descubre prendas seleccionadas, encuentra tu próximo favorito y ayúdanos a darle una segunda vida.</p>
+      <a class="text-link" href="https://www.facebook.com/share/1DzpCW2sTF/" target="_blank" rel="noopener">Conoce nuestras novedades en Facebook ↗</a></div>
+    </section>
+  </main>
+
+  <footer><a class="footer-brand" href="./">RENOVA2 <span>CONCÓN</span></a><p>Ropa con otra historia. · Concón, Chile</p><div><a href="https://www.facebook.com/share/1DzpCW2sTF/" target="_blank" rel="noopener">Facebook</a><a href="https://wa.me/56933175639" target="_blank" rel="noopener">WhatsApp</a><a href="admin.html">Administración</a></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
