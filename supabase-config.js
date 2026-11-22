@@ -8,6 +8,6 @@
   y de las políticas incluidas en schema.sql. NUNCA pongas service_role aquí.
 */
 window.RENOVA2_CONFIG = {
-  SUPABASE_URL: "PEGA_AQUI_TU_PROJECT_URL",
-  SUPABASE_ANON_KEY: "PEGA_AQUI_TU_ANON_KEY"
+  SUPABASE_URL: "https://zzgfpihqrmdlamrfvost.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_SysgOB6DMaqGjgJwtSmxnw_onqNVrh8"
 };
