@@ -1,6 +1,7 @@
 (() => {
  const $=s=>document.querySelector(s), config=window.RENOVA2_CONFIG||{};
- const configured=config.SUPABASE_URL?.startsWith("https://")&&config.SUPABASE_ANON_KEY?.startsWith("ey");
+ const key=config.SUPABASE_ANON_KEY||"";
+ const configured=config.SUPABASE_URL?.startsWith("https://")&&(key.startsWith("ey")||key.startsWith("sb_publishable_"));
  const db=configured&&window.supabase?window.supabase.createClient(config.SUPABASE_URL,config.SUPABASE_ANON_KEY):null;
  const login=$("#loginPanel"),dash=$("#dashboard"),notice=$("#setupNotice"),form=$("#productForm");
  let editingImage=null;
@@ -8,7 +9,23 @@
  const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  async function session(){const {data}=await db.auth.getSession();show(!!data.session);if(data.session)loadProducts();}
  function show(on){login.hidden=on;dash.hidden=!on;}
- $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();$("#loginError").textContent="";const {error}=await db.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});if(error)$("#loginError").textContent="No se pudo ingresar. Revisa tus datos e inténtalo otra vez.";else session();});
+ $("#loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const button=$("#loginForm").querySelector('button[type="submit"]');
+  $("#loginError").textContent="";
+  button.disabled=true;
+  button.textContent="Ingresando…";
+  try{
+   const {error}=await db.auth.signInWithPassword({email:$("#email").value.trim(),password:$("#password").value});
+   if(error) $("#loginError").textContent="No se pudo ingresar: "+error.message;
+   else await session();
+  }catch(err){
+   $("#loginError").textContent="Error de conexión: "+(err.message||"Inténtalo nuevamente.");
+  }finally{
+   button.disabled=false;
+   button.textContent="Ingresar";
+  }
+ });
  $("#logoutBtn").onclick=async()=>{await db.auth.signOut();show(false);};
  function resetForm(){form.reset();$("#productId").value="";editingImage=null;$("#formTitle").textContent="Agregar prenda";$("#saveBtn").textContent="Publicar prenda";$("#cancelEdit").hidden=true;$("#formMessage").textContent="";}
  $("#cancelEdit").onclick=resetForm;
@@ -21,6 +38,6 @@
  const result=patch?await db.from("products").update(patch).eq("id",id):await db.from("products").delete().eq("id",id);
  if(result.error)alert("No se pudo actualizar: "+result.error.message);else loadProducts();
  });
- db.auth.onAuthStateChange((_event,session)=>show(!!session));
+ db.auth.onAuthStateChange((_event,session)=>{show(!!session);if(session)loadProducts();});
  session();
 })();
